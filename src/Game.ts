@@ -137,7 +137,7 @@ export interface Player {
 
   export type Outcome = 0 | 1 | 2 | 3 | 4 | 6 | 'out';
 
-  function getDeliveryOutcomeProbabilities(batsman: Player, bowler: Player): Record<Outcome, number> {
+  export function getDeliveryOutcomeProbabilities(batsman: Player, bowler: Player): Record<Outcome, number> {
     const outcomeProbabilities: Record<Outcome, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 6: 0, out: 0 };
   
     // Calculate the probability of the batsman getting out
