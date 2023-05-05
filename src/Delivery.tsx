@@ -9,7 +9,7 @@ const Delivery: React.FC<DeliveryProps> = ({ delivery }) => {
     return (
         <>
            <span className="badge badge-primary badge-pill">14</span>
-{delivery.result === 'OUT' ? <div className='out'>OUT</div> : 
+{delivery.result === 'out' ? <div className='out'>OUT</div> : 
 <div> {delivery.result} </div>}
         
         {delivery.bowler} to {delivery.batter}

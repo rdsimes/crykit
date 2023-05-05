@@ -33,7 +33,7 @@ const BatterControls: React.FC<BatterProps> = ({ batter }) => {
            <div> Caution {batter.caution} 
            <button onClick={handleIncrement}>+</button>
         <button onClick={handleDecrement}>-</button>
-           Confidence {batter.confidence} Singles 
+           inningsStrikeRate {batter.inningsStrikeRate} Singles 
            
            <label>
           <input type="radio" value="Normal" checked={singlesPreference === "Normal"} onChange={handleSinglesPreferenceChange} />

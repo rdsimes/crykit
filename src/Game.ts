@@ -2,6 +2,7 @@ export interface Player {
     name: string;
     battingAverage: number;
     strikeRate: number;
+    bowlingStrikeRate: number;
     matchesPlayed: number;
     bowlingAverage: number;
     wickets: number;
@@ -10,7 +11,7 @@ export interface Player {
     ballsFaced: number;
     ballsBowled: number;
     caution: number;
-    confidence: number;
+    inningsStrikeRate: number;
     singles: SinglesPreference;
   }
   
@@ -26,6 +27,7 @@ export interface Player {
     const name = makeName(); // generate a random name for the player
     const battingAverage = Math.round((Math.random() * 60 + 10)*100)/100; // generate a random batting average between 10 and 70
     const strikeRate = Math.round((Math.random() * 100 + 50)*100)/100; // generate a random strike rate between 50 and 150
+    const bowlingStrikeRate = Math.round((Math.random() * 100)*100)/100; // generate a random strike rate between 50 and 150
     const matchesPlayed = Math.floor(Math.random() * 100); // generate a random number of matches played between 0 and 99
     const bowlingAverage = Math.random() * 60 + 20; // generate a random bowling average between 20 and 80
     const wickets = Math.floor(Math.random() * 100); // generate a random number of wickets taken between 0 and 99
@@ -35,6 +37,7 @@ export interface Player {
       name,
       battingAverage,
       strikeRate,
+      bowlingStrikeRate,
       matchesPlayed,
       bowlingAverage,
       wickets,
@@ -43,7 +46,7 @@ export interface Player {
       ballsFaced: 0,
       ballsBowled: 0,
       caution: 50,
-      confidence: 50,
+      inningsStrikeRate: 0,
       singles: "Normal"
     };
   }
@@ -131,8 +134,48 @@ export interface Player {
     }
   }
   var rand012 = weightedRand({0:0.3, 1:0.2, 2:0.2, 3:0.1, 4:0.3, 6:0.1});
+
+  export type Outcome = 0 | 1 | 2 | 3 | 4 | 6 | 'out';
+
+  function getDeliveryOutcomeProbabilities(batsman: Player, bowler: Player): Record<Outcome, number> {
+    const outcomeProbabilities: Record<Outcome, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 6: 0, out: 0 };
   
-  export function simulateDelivery(bowlingPlayer: Player, battingPlayer: Player): number | 'OUT' {
+    // Calculate the probability of the batsman getting out
+    const outProbability = Math.max(0, Math.min(1, (1 - batsman.inningsStrikeRate) + (batsman.battingAverage / 100) - (bowler.strikeRate / 100)));
+    outcomeProbabilities.out = outProbability;
+  
+    // Calculate the probabilities of the other outcomes based on the batsman's and bowler's stats
+    const nonOutProbabilitiesTotal = 1 - outProbability;
+    const averageScoreProbability = batsman.battingAverage / 100;
+    const strikeRateBonus = batsman.strikeRate / 100 - bowler.bowlingStrikeRate / 100;
+    const higherScoringProbability = Math.min(1, Math.max(0, averageScoreProbability + (strikeRateBonus / 2)));
+  
+    outcomeProbabilities[0] = nonOutProbabilitiesTotal * (1 - higherScoringProbability);
+    outcomeProbabilities[1] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.4);
+    outcomeProbabilities[2] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.3);
+    outcomeProbabilities[3] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.2);
+    outcomeProbabilities[4] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.1);
+    outcomeProbabilities[6] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.05);
+  
+    return outcomeProbabilities;
+  }
+
+  export function simulateDelivery(batsman: Player, bowler: Player): Outcome {
+    const outcomeProbabilities = getDeliveryOutcomeProbabilities(batsman, bowler);
+    const randomOutcome = Math.random();
+  
+    let probabilitySum = 0;
+    for (const [outcome, probability] of Object.entries(outcomeProbabilities)) {
+      probabilitySum += probability;
+      if (randomOutcome <= probabilitySum) {
+        return outcome as Outcome;
+      }
+    }
+  
+    throw new Error('Could not determine delivery outcome');
+  }
+  
+  export function simulateDeliveryOld(bowlingPlayer: Player, battingPlayer: Player): number | 'OUT' {
     const totalScore = rand012(); //Math.floor(Math.random() * 7); // generate a random integer between 0 and 6
 
     bowlingPlayer.ballsBowled++;
@@ -163,7 +206,7 @@ export interface Player {
     ball: number,
     batter: string,
     bowler: string,
-    result: number | "OUT"
+    result: Outcome
   }
 
   type FirstInningsResult = {
@@ -200,18 +243,18 @@ export interface Player {
       const deliveryResult = simulateDelivery(bowler, batsman);
       deliveries.push({ball: balls, bowler: bowler.name, batter: batsman.name, result: deliveryResult});
    
-      if (deliveryResult === 'OUT') {
+      if (deliveryResult === 'out') {
         batters.splice(batsmanIndex, 1);
         wickets++;
       } else {
-        batsman.runs += deliveryResult;
-        runs += deliveryResult;
+        batsman.runs += Number(deliveryResult);
+        runs += Number(deliveryResult);
       }
 
       if (balls % 6 === 5) {
         overSummaries.push({
           bowler: bowler.name, 
-          runs: deliveries.map(d => d.result === "OUT" ? 0 : d.result).reduce((sum, runs) => sum+runs),
+          runs: deliveries.map(d => d.result === "out" ? 0 : Number(d.result)).reduce((sum, runs) => sum+runs),
           deliveries: deliveries,
           inningsRuns: runs,
           inningsWickets: wickets,
