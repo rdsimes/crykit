@@ -5,12 +5,10 @@ interface BatterProps {
   batter: Player;
 }
 
-let sr = (batter: Player) => Math.round(batter.runs / Math.max(batter.ballsFaced, 1) * 10000)/100;
-
 const Batter: React.FC<BatterProps> = ({ batter }) => {
     return (
         <>
-           <div> {batter.name} - {batter.runs} ({batter.ballsFaced}) SR:{sr(batter)} </div>
+           <div> {batter.name} - {batter.runs} ({batter.ballsFaced}) SR:{batter.inningsStrikeRate} </div>
         
        
         </>

@@ -40,14 +40,19 @@ function App() {
       console.log(overs, balls, deliveries, currentOver, deliveryResult);
       deliveries.push({ball: balls, bowler: bowler.name, batter: batsman.name, result: deliveryResult});
       setCurrentOver([...deliveries]);
+ 
       if (deliveryResult === 'out') {
         setLastWicket(batsman);
         batters.splice(batsmanIndex, 1);
         wickets++;
       } else {
         batsman.runs += Number(deliveryResult);
+        
         runs += Number(deliveryResult);
       }
+
+      batsman.ballsFaced++;
+      batsman.inningsStrikeRate = (batsman.runs / batsman.ballsFaced)*100;
 
       if (balls % 6 === 5) {
         overSummaries.push({

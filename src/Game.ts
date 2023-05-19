@@ -25,7 +25,7 @@ export interface Player {
 
   function generatePlayer(): Player {
     const name = makeName(); // generate a random name for the player
-    const battingAverage = Math.round((Math.random() * 60 + 10)*100)/100; // generate a random batting average between 10 and 70
+    const battingAverage = Math.round((Math.random() * 30 + 5)*100)/100; // generate a random batting average between 10 and 70
     const strikeRate = Math.round((Math.random() * 100 + 50)*100)/100; // generate a random strike rate between 50 and 150
     const bowlingStrikeRate = Math.round((Math.random() * 100)*100)/100; // generate a random strike rate between 50 and 150
     const matchesPlayed = Math.floor(Math.random() * 100); // generate a random number of matches played between 0 and 99
@@ -137,25 +137,63 @@ export interface Player {
 
   export type Outcome = 0 | 1 | 2 | 3 | 4 | 6 | 'out';
 
+  export function getOutProbability(batsman: Player, bowler: Player) : number {
+
+    const strikeRate = batsman.ballsFaced > 5 ? batsman.inningsStrikeRate : batsman.strikeRate;
+    return 1 / (batsman.battingAverage * (strikeRate / 100));
+    
+  }
+
   export function getDeliveryOutcomeProbabilities(batsman: Player, bowler: Player): Record<Outcome, number> {
     const outcomeProbabilities: Record<Outcome, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 6: 0, out: 0 };
   
     // Calculate the probability of the batsman getting out
-    const outProbability = Math.max(0, Math.min(1, (1 - batsman.inningsStrikeRate) + (batsman.battingAverage / 100) - (bowler.strikeRate / 100)));
+    const outProbability = getOutProbability(batsman, bowler);
     outcomeProbabilities.out = outProbability;
   
     // Calculate the probabilities of the other outcomes based on the batsman's and bowler's stats
     const nonOutProbabilitiesTotal = 1 - outProbability;
-    const averageScoreProbability = batsman.battingAverage / 100;
-    const strikeRateBonus = batsman.strikeRate / 100 - bowler.bowlingStrikeRate / 100;
-    const higherScoringProbability = Math.min(1, Math.max(0, averageScoreProbability + (strikeRateBonus / 2)));
+
+    const calc = (d: number, s: number, tw: number, th: number, f: number, six: number) => d*0+s*1+tw*2+th*3+f*4+six*6;
+    let dots = 2;
+    let single = 2;
+    let twos = 1;
+    let threes = 1;
+    let fours = 2;
+    let sixes = 1;
+
+    let balls = dots+single+twos+threes+fours+sixes;
+    let score = calc(dots, single, twos, threes, fours, sixes);
+    let strikeRate = score / balls * 100;
+    let prevStrikeRate = 100;
+
+    while(Math.abs(batsman.strikeRate - strikeRate) > 0.1){
+      if (batsman.strikeRate > strikeRate){
+        fours++;
+      } else if (prevStrikeRate > strikeRate){
+        dots++;
+      } else {
+        single++;
+      }
+
+      prevStrikeRate = strikeRate;
+
+      balls = dots+single+twos+threes+fours+sixes;
+      score = calc(dots, single, twos, threes, fours, sixes);
+      strikeRate = score / balls * 100;
+      if (balls > 300){
+        break;
+      }
+    }
+
+
   
-    outcomeProbabilities[0] = nonOutProbabilitiesTotal * (1 - higherScoringProbability);
-    outcomeProbabilities[1] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.4);
-    outcomeProbabilities[2] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.3);
-    outcomeProbabilities[3] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.2);
-    outcomeProbabilities[4] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.1);
-    outcomeProbabilities[6] = nonOutProbabilitiesTotal * (higherScoringProbability * 0.05);
+    outcomeProbabilities[0] = nonOutProbabilitiesTotal * (dots/balls);
+    outcomeProbabilities[1] = nonOutProbabilitiesTotal * (single/balls);
+    outcomeProbabilities[2] = nonOutProbabilitiesTotal * (twos/balls);
+    outcomeProbabilities[3] = nonOutProbabilitiesTotal * (threes/balls);
+    outcomeProbabilities[4] = nonOutProbabilitiesTotal * (fours/balls);
+    outcomeProbabilities[6] = nonOutProbabilitiesTotal * (sixes/balls);
   
     return outcomeProbabilities;
   }
@@ -175,27 +213,7 @@ export interface Player {
     throw new Error('Could not determine delivery outcome');
   }
   
-  export function simulateDeliveryOld(bowlingPlayer: Player, battingPlayer: Player): number | 'OUT' {
-    const totalScore = rand012(); //Math.floor(Math.random() * 7); // generate a random integer between 0 and 6
-
-    bowlingPlayer.ballsBowled++;
-    battingPlayer.ballsFaced++;
-      
-    if (totalScore === 0) {
-      return totalScore;
-    }
   
-    const battingAverageFactor = battingPlayer.battingAverage / bowlingPlayer.bowlingAverage;
-    const strikeRateFactor = battingPlayer.strikeRate / bowlingPlayer.economy;
-    const probabilityOfScoring = (battingAverageFactor + strikeRateFactor) / 15;
-
-    if (Math.random() > probabilityOfScoring) {
-      return 'OUT';
-    }
-  
-    return totalScore;
-  }
-
   export type GameResult = {
     winner: Team | null;
     margin: number;

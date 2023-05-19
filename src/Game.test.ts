@@ -1,5 +1,6 @@
 
-import { getDeliveryOutcomeProbabilities, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player } from './Game';
+import exp from 'constants';
+import { getDeliveryOutcomeProbabilities, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player, getOutProbability } from './Game';
 
 
 const defaultPlayer: Player = {
@@ -23,12 +24,34 @@ function createPlayer(player: Partial<Player>): Player {
   return { ...defaultPlayer, ...player };
 }
 
+describe('getOutProbability', () => {
+  const batsman: Player = createPlayer({
+    name: 'Sachin Tendulkar',
+    battingAverage: 53.78,
+    inningsStrikeRate: 86.23,
+    strikeRate: 86.23
+    
+  });
+
+  const bowler: Player = createPlayer({
+    name: 'Glenn McGrath',
+    bowlingStrikeRate: 22.02,
+  });
+
+  it('returns a probabillity close to 0', () => {
+    const outProbability = getOutProbability(batsman, bowler);
+    expect(outProbability).toBeCloseTo(0, 1);
+    expect(outProbability).toBeGreaterThan(0);
+   
+  });
+});
+
 describe('getDeliveryOutcomeProbabilities', () => {
   const batsman: Player = createPlayer({
     name: 'Sachin Tendulkar',
     battingAverage: 53.78,
     inningsStrikeRate: 86.23,
-    
+    strikeRate: 80
   });
 
   const bowler: Player = createPlayer({
