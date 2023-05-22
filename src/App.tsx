@@ -37,7 +37,6 @@ function App() {
       const bowler = bowlingTeam.players[bowlerIndex];
 
       const deliveryResult = simulateDelivery(bowler, batsman);
-      console.log(overs, balls, deliveries, currentOver, deliveryResult);
       deliveries.push({ball: balls, bowler: bowler.name, batter: batsman.name, result: deliveryResult});
       setCurrentOver([...deliveries]);
  
@@ -68,7 +67,6 @@ function App() {
       }
   
       balls++;
-      console.log(balls);
     }
   }
 
@@ -140,11 +138,22 @@ function App() {
       <div className='row'>
       <div className="col-md-8">
         <Over over={overs} deliveries={currentOver}></Over>
-        </div>
+        {overSummaries.reverse().map((over) => (
+            <div>  
+            <h4> Over {over.over}</h4>
+            <div className="row mb-2">
+              <div className="col-md-2 font-weight-bold">Bowler: {over.bowler}</div>
+              <div className="col-md-2 font-weight-bold">Runs: {over.runs}</div>
+              <div className="col-md-2 font-weight-bold">Wickets</div>
+            </div>   
+            <Over over={over.over} deliveries={over.deliveries} />   
+            </div>
+          ))}
+       </div>
       </div>
       <div className="row">
         <div className="col-md-8">
-          {result.overs.map((over) => (
+          {result.overs.slice().reverse().map((over) => (
           <div>  
             <h4> Over {over.over}</h4>
             <div className="row mb-2">

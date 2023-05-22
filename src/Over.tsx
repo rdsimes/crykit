@@ -10,9 +10,9 @@ interface OverProps {
 const Over: React.FC<OverProps> = ({ over, deliveries }) => {
     return (
         <ul className='list-group'>
-          {deliveries.map((delivery, index) => (
+          {deliveries.slice().reverse().map((delivery, index) => (
             <li key={index} className='list-group-item d-flex justify-content-between align-items-center'>
-              <span>{over}.{index + 1} </span>
+              <span>{Math.floor(delivery.ball/6)}.{delivery.ball%6+1} </span>
                 <Delivery delivery={delivery} />              
             </li>
           ))}

@@ -133,8 +133,7 @@ export interface Player {
       return table[Math.floor(Math.random() * table.length)];
     }
   }
-  var rand012 = weightedRand({0:0.3, 1:0.2, 2:0.2, 3:0.1, 4:0.3, 6:0.1});
-
+ 
   export type Outcome = 0 | 1 | 2 | 3 | 4 | 6 | 'out';
 
   export function getOutProbability(batsman: Player, bowler: Player) : number {
