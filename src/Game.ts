@@ -1,4 +1,5 @@
 export interface Player {
+    wicket?: { bowler: Player; description: string};
     name: string;
     battingAverage: number;
     strikeRate: number;
@@ -47,7 +48,8 @@ export interface Player {
       ballsBowled: 0,
       caution: 50,
       inningsStrikeRate: 0,
-      singles: "Normal"
+      singles: "Normal",
+      wicket: undefined
     };
   }
   
@@ -116,24 +118,6 @@ export interface Player {
     return { team1, team2 }
   }
 
-  type ScoreMap = { [key: number]: number };
-
-
-  function weightedRand(spec: ScoreMap) {
-    var i, j, table: number[] =[];
-    for (i in spec) {
-      // The constant 10 below should be computed based on the
-      // weights in the spec for a correct and optimal table size.
-      // E.g. the spec {0:0.999, 1:0.001} will break this impl.
-      for (j=0; j<spec[i]*10; j++) {
-        table.push(parseInt(i));
-      }
-    }
-    return function() {
-      return table[Math.floor(Math.random() * table.length)];
-    }
-  }
- 
   export type Outcome = 0 | 1 | 2 | 3 | 4 | 6 | 'out';
 
   export function getOutProbability(batsman: Player, bowler: Player) : number {
@@ -291,3 +275,6 @@ export interface Player {
     };
   } 
   
+  export function setWicket(batter: Player, bowler: Player){
+    batter.wicket = {description:" Bowled sdfsd", bowler} ;
+  }

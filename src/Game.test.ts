@@ -1,6 +1,5 @@
 
-import exp from 'constants';
-import { getDeliveryOutcomeProbabilities, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player, getOutProbability } from './Game';
+import { getDeliveryOutcomeProbabilities, setWicket, Player, getOutProbability } from './Game';
 
 
 const defaultPlayer: Player = {
@@ -46,6 +45,22 @@ describe('getOutProbability', () => {
   });
 });
 
+describe('setWicket', () => {
+  const batter: Player = createPlayer({
+    name: 'Sachin Tendulkar',
+    battingAverage: 53.78,
+    inningsStrikeRate: 86.23,
+    strikeRate: 86.23
+    
+  });
+  
+  const bowler: Player = createPlayer({
+    name: 'Glenn McGrath',
+    bowlingStrikeRate: 22.02,
+  });
+  setWicket(batter, bowler);
+  expect(batter.wicket?.bowler).toBe(bowler);
+});
 describe('getDeliveryOutcomeProbabilities', () => {
   const batsman: Player = createPlayer({
     name: 'Sachin Tendulkar',

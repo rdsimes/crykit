@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
-import { createTeams, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player } from './Game';
+import { createTeams, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player, setWicket } from './Game';
 import  Over  from './Over';
 import Team from './Team';
 import Batter from './Batter';
@@ -42,6 +42,7 @@ function App() {
  
       if (deliveryResult === 'out') {
         setLastWicket(batsman);
+        setWicket(batsman, bowler);
         batters.splice(batsmanIndex, 1);
         wickets++;
       } else {
@@ -110,7 +111,7 @@ function App() {
             <td>{result.overs.length}</td>
           </tr>
           <tr>
-            <td>{game.team2.name}</td>
+            <td><strong>{game.team2.name}</strong></td>
             <td>{runs}/{wickets}</td>
             <td>{overs}</td>
           </tr>
