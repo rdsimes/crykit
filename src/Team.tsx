@@ -1,11 +1,13 @@
 import React from 'react';
-import { Team } from './Game';
+import { Team, Player } from './Game';
 
 interface TeamProps {
   team: Team;
+ /* batter1: Player;
+  batter2: Player;*/
 }
 
-const TeamComponent: React.FC<TeamProps> = ({ team }) => {
+const TeamComponent: React.FC<TeamProps> = ({ team/*, batter1, batter2*/ }) => {
   return (
     <div>
       <h2>{team.name}</h2>
