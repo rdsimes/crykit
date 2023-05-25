@@ -25,6 +25,10 @@ function App() {
   const [currentOver, setCurrentOver] = useState<DeliveryResult[]>([]);
   const [lastWicket, setLastWicket] = useState<Player>();
   const [chasingWickets, setChasingWickets] = useState<number>(0);
+  const movePlayerUp = (index:number) => {
+    [batters[index - 1], batters[index]] = [batters[index], batters[index - 1]];
+    console.log(batters, index);
+  }
   
  
   //const 
@@ -168,8 +172,8 @@ function App() {
           </div>
           <div className="col-md-4">
             <h1>Teams</h1>
-            <Team team={game.team1} />
-            <Team team={game.team2} />
+            <Team team={game.team1} inningsComplete={true} />
+            <Team team={game.team2} inningsComplete={false} batter1={batters[0]} batter2={batters[1]} movePlayerUp = {movePlayerUp}/>
           </div>
         </div>
       </div>
