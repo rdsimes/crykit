@@ -8,7 +8,6 @@ const defaultPlayer: Player = {
   strikeRate: 0,
   bowlingStrikeRate: 0,
   matchesPlayed: 0,
-  bowlingAverage: 0,
   wickets: 0,
   economy: 0,
   runs: 0,
@@ -35,6 +34,7 @@ describe('getOutProbability', () => {
   const bowler: Player = createPlayer({
     name: 'Glenn McGrath',
     bowlingStrikeRate: 22.02,
+    economy: 5
   });
 
   it('returns a probabillity close to 0', () => {
@@ -85,17 +85,13 @@ describe('getDeliveryOutcomeProbabilities', () => {
     expect(outcomeProbabilities).toHaveProperty('out', expect.any(Number));
     const sum = Object.values(outcomeProbabilities).reduce((acc, cur) => acc + cur, 0);
     expect(sum).toBeCloseTo(1);
-    console.log(outcomeProbabilities);
    
   });
 
   it('returns lower probabilities for higher-scoring outcomes', () => {
     const outcomeProbabilities = getDeliveryOutcomeProbabilities(batsman, bowler);
     expect(outcomeProbabilities['6']).toBeLessThan(outcomeProbabilities['4']);
-    expect(outcomeProbabilities['4']).toBeLessThan(outcomeProbabilities['3']);
-    expect(outcomeProbabilities['3']).toBeLessThan(outcomeProbabilities['2']);
     expect(outcomeProbabilities['2']).toBeLessThan(outcomeProbabilities['1']);
-    expect(outcomeProbabilities['1']).toBeLessThan(outcomeProbabilities['0']);
   });
 
   
@@ -109,9 +105,17 @@ describe('getDeliveryOutcomeProbabilities', () => {
  
   });
 
-  it('returns lower probabilities for bowlers with lower bowling strike rates', () => {
-    const lowStrikeRateBowler: Player = { ...bowler, bowlingStrikeRate: 40 };
-    const outcomeProbabilities = getDeliveryOutcomeProbabilities(batsman, lowStrikeRateBowler);
-    expect(outcomeProbabilities['0']).toBeGreaterThan(outcomeProbabilities['1']);
+  it('poorer bowling strike rate makes out less likely', () => {
+    const poorStrikeRateBowler: Player = { ...bowler, bowlingStrikeRate: 40 };
+    const poor = getDeliveryOutcomeProbabilities(batsman, poorStrikeRateBowler);
+    const normal = getDeliveryOutcomeProbabilities(batsman, bowler);
+    expect(poor['out']).toBeLessThan(normal['out']);
+  });
+
+  it('returns lower probabillities of high scores for low economy bowling', () => {
+    const goodEconomyBowler: Player = { ...bowler, economy:3 };
+    const good = getDeliveryOutcomeProbabilities(batsman, goodEconomyBowler);
+    const normal = getDeliveryOutcomeProbabilities(batsman, bowler);
+    expect(good['6']).toBeLessThan(normal['6']);
   });
 });

@@ -5,7 +5,6 @@ export interface Player {
     strikeRate: number;
     bowlingStrikeRate: number;
     matchesPlayed: number;
-    bowlingAverage: number;
     wickets: number;
     economy: number;
     runs: number;
@@ -27,12 +26,11 @@ export interface Player {
   function generatePlayer(): Player {
     const name = makeName(); // generate a random name for the player
     const battingAverage = Math.round((Math.random() * 30 + 5)*100)/100; // generate a random batting average between 10 and 70
-    const strikeRate = Math.round((Math.random() * 100 + 50)*100)/100; // generate a random strike rate between 50 and 150
+    const strikeRate = Math.round((Math.random() * 100 + 10)*100)/100; // generate a random strike rate between 10 and 110
     const bowlingStrikeRate = Math.round((Math.random() * 100)*100)/100; // generate a random strike rate between 50 and 150
     const matchesPlayed = Math.floor(Math.random() * 100); // generate a random number of matches played between 0 and 99
-    const bowlingAverage = Math.random() * 60 + 20; // generate a random bowling average between 20 and 80
     const wickets = Math.floor(Math.random() * 100); // generate a random number of wickets taken between 0 and 99
-    const economy = Math.random() * 10 + 3; // generate a random economy rate between 3 and 13
+    const economy = Math.random() * 10 + 4; // generate a random economy rate between 4 and 14
   
     return {
       name,
@@ -40,7 +38,6 @@ export interface Player {
       strikeRate,
       bowlingStrikeRate,
       matchesPlayed,
-      bowlingAverage,
       wickets,
       economy,
       runs: 0,
@@ -123,8 +120,9 @@ export interface Player {
   export function getOutProbability(batsman: Player, bowler: Player) : number {
 
     const strikeRate = batsman.ballsFaced > 5 ? batsman.inningsStrikeRate : batsman.strikeRate;
-    return 1 / (batsman.battingAverage * (strikeRate / 100));
-    
+    const batterBallsPerInnings = batsman.battingAverage * (strikeRate / 100);
+    const ballsPerInnings = (batterBallsPerInnings + bowler.bowlingStrikeRate) / 2; //average of batters balls and bowlers strike rate
+    return 1 / (ballsPerInnings); 
   }
 
   export function getDeliveryOutcomeProbabilities(batsman: Player, bowler: Player): Record<Outcome, number> {
@@ -136,6 +134,9 @@ export interface Player {
   
     // Calculate the probabilities of the other outcomes based on the batsman's and bowler's stats
     const nonOutProbabilitiesTotal = 1 - outProbability;
+
+    //adjust the batters strikerate with the bowlers economy
+    const inningsStrikeRate = (batsman.strikeRate + (bowler.economy/6*100))/2; 
 
     const calc = (d: number, s: number, tw: number, th: number, f: number, six: number) => d*0+s*1+tw*2+th*3+f*4+six*6;
     let dots = 2;
@@ -150,8 +151,8 @@ export interface Player {
     let strikeRate = score / balls * 100;
     let prevStrikeRate = 100;
 
-    while(Math.abs(batsman.strikeRate - strikeRate) > 0.1){
-      if (batsman.strikeRate > strikeRate){
+    while(Math.abs(inningsStrikeRate - strikeRate) > 0.1){
+      if (inningsStrikeRate > strikeRate){
         fours++;
       } else if (prevStrikeRate > strikeRate){
         dots++;
