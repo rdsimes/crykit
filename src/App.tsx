@@ -1,22 +1,21 @@
 import React, {useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
-import { createTeams, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player, setWicket } from './Game';
+import { createTeams, simulateFirstInnings, simulateDelivery, OverSummary, DeliveryResult, Player, setWicket, InningsResult } from './Game';
 import  Over  from './Over';
 import Team from './Team';
 import Batter from './Batter';
 import BatterControls from './BatterControls';
+import GameResult from './GameResult';
 
 const game = createTeams();
-const result = simulateFirstInnings(game.team1, game.team2);
+const firstInnings = simulateFirstInnings(game.team1, game.team2);
+let secondInnings: InningsResult = {runs:0, wickets: 0, overs:[], balls: 0};
 let battingTeam = game.team2;
 let bowlingTeam = game.team1;
 
-let wickets = 0;
 let overs = 1;
-let runs = 0;
-let balls = 0;
-let overSummaries: OverSummary[] = [];
+
 let deliveries: DeliveryResult[] = [];
 let batters = [...battingTeam.players]
 
@@ -24,7 +23,7 @@ function App() {
 
   const [currentOver, setCurrentOver] = useState<DeliveryResult[]>([]);
   const [lastWicket, setLastWicket] = useState<Player>();
-  const [chasingWickets, setChasingWickets] = useState<number>(0);
+  const [gameOver, setGameOver] = useState(false);
   const movePlayerUp = (index:number) => {
     [batters[index - 1], batters[index]] = [batters[index], batters[index - 1]];
     console.log(batters, index);
@@ -34,44 +33,47 @@ function App() {
   //const 
   function playNext(){
 
-    if (overs <= 20 && wickets < 10) {
-      const batsmanIndex = (overs - 1 + runs) % 2;
+    if (overs <= 20 && secondInnings.wickets < 10) {
+      const batsmanIndex = (overs - 1 + secondInnings.runs) % 2;
       const bowlerIndex = overs % 5;
       const batsman = batters[batsmanIndex];
       const bowler = bowlingTeam.players[bowlerIndex];
-
+      
       const deliveryResult = simulateDelivery(bowler, batsman);
-      deliveries.push({ball: balls, bowler: bowler.name, batter: batsman.name, result: deliveryResult});
+      deliveries.push({ball: secondInnings.balls, bowler: bowler.name, batter: batsman.name, result: deliveryResult});
       setCurrentOver([...deliveries]);
  
       if (deliveryResult === 'out') {
         setLastWicket(batsman);
         setWicket(batsman, bowler);
         batters.splice(batsmanIndex, 1);
-        wickets++;
+        secondInnings.wickets++;
       } else {
         batsman.runs += Number(deliveryResult);
         
-        runs += Number(deliveryResult);
+        secondInnings.runs += Number(deliveryResult);
       }
 
       batsman.ballsFaced++;
       batsman.inningsStrikeRate = (batsman.runs / batsman.ballsFaced)*100;
 
-      if (balls % 6 === 5) {
-        overSummaries.push({
+      secondInnings.balls++;
+      if (secondInnings.runs > firstInnings.runs || secondInnings.balls >= 20*6 || secondInnings.wickets >= 10){
+        setGameOver(true);
+      }
+
+      if (secondInnings.balls % 6 === 0 || gameOver) {
+        secondInnings.overs.push({
           bowler: bowler.name, 
           runs: deliveries.map(d => d.result === "out" ? 0 : Number(d.result)).reduce((sum, runs) => sum+runs),
           deliveries: deliveries,
-          inningsRuns: runs,
-          inningsWickets: wickets,
+          inningsRuns: secondInnings.runs,
+          inningsWickets: secondInnings.wickets,
           over: overs
         });
         deliveries = [];
         overs++;
       }
-  
-      balls++;
     }
   }
 
@@ -111,12 +113,12 @@ function App() {
         <tbody>
           <tr>
             <td>{game.team1.name}</td>
-            <td>{result.runs}/{result.wickets}</td>
-            <td>{result.overs.length}</td>
+            <td>{firstInnings.runs}/{firstInnings.wickets}</td>
+            <td>{firstInnings.overs.length}</td>
           </tr>
           <tr>
             <td><strong>{game.team2.name}</strong></td>
-            <td>{runs}/{wickets}</td>
+            <td>{secondInnings.runs}/{secondInnings.wickets}</td>
             <td>{overs}</td>
           </tr>
         </tbody>
@@ -125,7 +127,7 @@ function App() {
     <div className="col-md-8">
       <h4>Match Status</h4>
       <p>Overs: {overs}.{currentOver.length}</p>
-      <p>Target: {(result.runs+1)}</p>
+      <p>Target: {(firstInnings.runs+1)}</p>
       {lastWicket?(
       <p>Last Wicket: <Batter batter={lastWicket}/></p>
       ):null}
@@ -138,12 +140,17 @@ function App() {
 </div>
     <div className="container mt-5">
       <div className='row'>
-        <button onClick={playNext}>Next ball</button>
+        {gameOver?(
+          <GameResult firstInnings = {firstInnings} secondInnings = {secondInnings} />
+        ):(
+          <button onClick={playNext}>Next ball</button>
+        )}
+        
       </div>
       <div className='row'>
       <div className="col-md-8">
         <Over over={overs} deliveries={currentOver}></Over>
-        {overSummaries.reverse().map((over) => (
+        {secondInnings.overs.reverse().map((over) => (
             <div>  
             <h4> Over {over.over}</h4>
             <div className="row mb-2">
@@ -158,7 +165,7 @@ function App() {
       </div>
       <div className="row">
         <div className="col-md-8">
-          {result.overs.slice().reverse().map((over) => (
+          {firstInnings.overs.slice().reverse().map((over) => (
           <div>  
             <h4> Over {over.over}</h4>
             <div className="row mb-2">

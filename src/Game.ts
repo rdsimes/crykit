@@ -170,8 +170,6 @@ export interface Player {
       }
     }
 
-
-  
     outcomeProbabilities[0] = nonOutProbabilitiesTotal * (dots/balls);
     outcomeProbabilities[1] = nonOutProbabilitiesTotal * (single/balls);
     outcomeProbabilities[2] = nonOutProbabilitiesTotal * (twos/balls);
@@ -211,10 +209,11 @@ export interface Player {
     result: Outcome
   }
 
-  type FirstInningsResult = {
+  export type InningsResult = {
     runs: number,
     wickets: number,
-    overs: OverSummary[]
+    overs: OverSummary[],
+    balls: number
   };
 
   export type OverSummary = {
@@ -227,7 +226,7 @@ export interface Player {
   }
   
   
-  export function simulateFirstInnings(team: Team, team2: Team): FirstInningsResult {
+  export function simulateFirstInnings(team: Team, team2: Team): InningsResult {
     let wickets = 0;
     let overs = 1;
     let runs = 0;
@@ -272,7 +271,8 @@ export interface Player {
     return {
       runs,
       wickets,
-      overs: overSummaries
+      overs: overSummaries,
+      balls: balls
     };
   } 
   
